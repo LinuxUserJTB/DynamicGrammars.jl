@@ -1,0 +1,85 @@
+# PRIMITIVE GRAMMAR 3
+# Grammar representing a subset of the grammar language written in a simple subset of itself.
+# Every line containing a rule must be a single concatenation node (nodes separated by space).
+# Every node is either a reference or a terminal string. This grammar can be parsed with the
+# primitive grammar 2.
+#
+# FEATURES (TODO: rewrite)
+# Alternatives can be specified by multiple rule lines for the same rule name. Concatenations
+# are represented just by concatenating the parts together with space inbetween. Terminal
+# symbols now be written as codepoints or characters 'x'.
+
+root => rules[]=((0:| line '\n' +) line) # line array separated by newline characters
+line => comment
+line => *=rule
+line => *=rule space comment # allow rules to be commented
+line => () # allow empty lines
+
+comment => '#' (0:| -'\n';. +)
+
+space => (0:| ' ' +)
+
+symbol => 'A'-'Z';'_';'a'-'z';128-. (0:| '0'-'9';'A'-'Z';'_';'a'-'z';128-. +)
+
+rule => left[*]=symbol space '=>' space right=node2
+
+node2 => node1
+node1 => node0
+
+node2 => alternative[]=alternative
+node1 => concatenation[]=concat
+node0 => structure=name space '=' space definition=node0
+node0 => '(' space node2 space ')'
+node0 => '(' space ')' empty=()
+node0 => '(' space min=minspec ':' space max=maxspec '|' space repetition=node2 space greedyspec ')'
+node0 => terminal[]=terminal
+node0 => reference[*]=symbol parameter=(0:1| '{' parameterterm '}' +)
+
+parameterterm => c0[*]=int
+parameterterm => c1[*]=symbol
+parameterterm => c0[*]=int space '+' space c1[*]=symbol
+parameterterm => c1[*]=symbol space '+' space c0[*]=int
+
+# if uncommented, min will default to 0. (This is as unintuitive as defaulting to 1 so it must be explicitly set)
+#minspec => ()
+minspec => parameterterm space
+maxspec => ()
+maxspec => parameterterm space
+greedyspec => ()
+greedyspec => '+' greedy=() space
+
+alternative => *=node1 (1:| space '|' space *=node1 +)
+
+concat => *=node0 (1:| (1:| ' ' +) *=node0 +)
+
+terminal => *=signedterminalstring (0:| space ';' space *=signedterminalstring +)
+signedterminalstring => sign[*]='-' space parts[]=terminalstring # optional '-' as sign
+signedterminalstring => parts[]=terminalstring
+
+terminalstring => *=terminalpart (0:| space '*' space *=terminalpart +)
+
+terminalpart => '\'' string[*]=escapedstring '\''
+terminalpart => range=terminalrange
+terminalpart => value=terminalvalue
+
+terminalrange => start=rangebound space '-' space stop=rangebound
+terminalrange => '.' wildcard=()
+rangebound => terminalvalue
+rangebound => '.' wildcard=()
+
+terminalvalue => codepoint[*]=int
+terminalvalue => '\'' char[*]=escapedchar '\''
+
+escapedchar => '\\'*.;-'\n';-'\\';-'\'';.
+escapedstring => (2:| escapedchar +)
+
+name => key[*]=symbol dict=() # dict key (element type: dict)
+name => key[*]=symbol array=() space '[]' # [] dict key (element type: array)
+name => key[*]=symbol string=() space '[*]' # [*] dict key (element type: string)
+name => '*' dict=() # * array element (element type: dict)
+name => '[]' array=() # [] array element (element type: array)
+name => '[*]' string=() # [*] array element (element type: string)
+name => '_' ignore=() # _ ignore char
+
+int => '0' # 0
+int => '1'-'9' (0:| '0'-'9' +)
