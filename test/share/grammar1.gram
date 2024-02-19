@@ -1,0 +1,80 @@
+# PRIMITIVE GRAMMAR
+# Grammar representing a subset of the grammar language written in a simple subset of itself.
+# Every line containing a rule must be a single concatenation node (nodes separated by space).
+# Every node is either a reference or a terminal string. These simplifications allow this file
+# to be parsed by a simple hardcoded parser and thus build a grammar for the grammar language
+# in a consistent and reproducible way.
+#
+# FEATURES
+# Alternatives can be specified by multiple rule lines for the same rule name. Concatenations
+# are represented just by concatenating the parts together with space inbetween. Terminal
+# symbols can only written as codepoints.
+
+root => rules[]=lines
+lines => line 10 lines # line array separated by newline characters
+lines => line
+line => comment
+line => *=rule
+line => *=rule space comment # allow rules to be commented
+line => () # allow empty lines
+
+comment => 35 anystring
+anystring => ()
+anystring => -10;. anystring # any char but '\n'
+
+space => ()
+space => 32 space
+
+symbol => 65-90;95;97-122;128-. symbol_ # symbols must not start with a digit
+symbol_ => ()
+symbol_ => 48-57;65-90;95;97-122;128-. symbol_
+
+rule => left[*]=symbol space 61*62 space right=concat_ # only concat rules allowed here
+
+concat_ => concatenation[]=concat
+concat => *=node_ # concat can be a single node
+concat => *=node_ 32 space concat
+
+node_ => node
+node_ => structure=name space 61 space definition=node
+
+node => reference[*]=symbol parameter=() # reference
+node => terminal[]=terminal
+node => empty=() 40 space 41 # empty node; can be used for specifiing an empty dictionary representing the node type
+
+terminal => *=signedterminalstring
+terminal => *=signedterminalstring space 59 space terminal
+signedterminalstring => sign[*]=45 space parts[]=terminalstring # optional '-' as sign
+signedterminalstring => parts[]=terminalstring
+
+terminalstring => *=terminalpart
+terminalstring => *=terminalpart space 42 space terminalstring # concatenate with *
+
+terminalpart => 39 string[*]=escapedstring 39
+terminalpart => range=terminalrange
+terminalpart => value=terminalvalue
+
+terminalrange => start=rangebound space 45 space stop=rangebound
+terminalrange => 46 wildcard=()
+rangebound => terminalvalue
+rangebound => 46 wildcard=()
+
+terminalvalue => codepoint[*]=int
+terminalvalue => 39 char[*]=escapedchar 39
+
+escapedchar => 92*.;-10;-92;-39;. # '\\'*.; -'\n'; -'\\'; -'\''; .
+escapedstring => escapedchar escapedstring
+escapedstring => escapedchar escapedchar
+
+name => key[*]=symbol dict=() # dict key (element type: dict)
+name => key[*]=symbol array=() 91*93 # [] dict key (element type: array)
+name => key[*]=symbol string=() 91*42*93 # [*] dict key (element type: string)
+name => 42 dict=() # * array element (element type: dict)
+name => 91*93 array=() # [] array element (element type: array)
+name => 91*42*93 string=() # [*] array element (element type: string)
+name => 95 ignore=() # _ ignore char
+
+int => 48 # 0
+int => 49-57 int_ # 1-9
+int_ => 48-57 int_ # 0-9
+int_ => ()
