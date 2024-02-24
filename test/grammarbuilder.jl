@@ -8,8 +8,7 @@ end
 
 function construct_node(r::RuleSet, data::ASTNode, ::Type{Reference})
     name = value(data, "reference")
-    c0, c1 = parse_parameters(data["parameter"])
-    return Reference{terminal_type(r)}(r.indices[name], name; c0=c0, c1=c1)
+    return Reference{terminal_type(r)}(r.indices[name], name)
 end
 
 function construct_node(r::RuleSet, data::ASTNode, ::Type{Structure})
@@ -92,11 +91,11 @@ function construct_node(r::RuleSet, data::ASTNode, ::Type{Concatenation})
 end
 
 function construct_node(r::RuleSet, data::ASTNode, ::Type{Repetition})
-    min_c0, min_c1 = parse_parameters(data["min"])
-    max_c0, max_c1 = parse_parameters(data["max"])
+    min_c = parse(Int, value(data, "min"))
+    max_c = parse(Int, value(data, "max", "0"))
     greedy = haskey(data, "greedy")
     element = construct_node(r, data["repetition"])
-    return Repetition(element, min_c0, min_c1, max_c0, max_c1, greedy)
+    return Repetition(element, min_c, max_c, greedy)
 end
 
 function construct_node(r::RuleSet, data::ASTNode, ::Type{Alternative})

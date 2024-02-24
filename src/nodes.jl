@@ -1,20 +1,10 @@
-struct ParameterTerm
-    c0::Int
-    c1::Bool # linear term can only be n or 0
-end
-
-(t::ParameterTerm)(x) = t.c0 + x * t.c1
-
 terminal_type(::Type{<:Node{TT}}) where TT = TT
 terminal_type(::Node{TT}) where TT = TT
 
 struct Reference{TT} <: Node{TT}
     node::Int
-    parameter::ParameterTerm # parameter used in the reference
     name::String
 end
-
-Reference{TT}(node, name; c0 = 0, c1 = 0) where TT = Reference{TT}(node, ParameterTerm(c0, c1), name)
 
 struct Structure{TT, NT} <: Node{TT}
     key::String # if dict key
@@ -87,15 +77,13 @@ Concatenation(elements) = Concatenation{terminal_type(eltype(elements)), eltype(
 
 struct Repetition{TT, NT} <: Node{TT}
     element::NT
-    min_count::ParameterTerm
-    max_count::ParameterTerm # 0 means ∞
+    min_count::Int
+    max_count::Int # 0 means ∞
     greedy::Bool
 end
 
 Repetition(element, min_count, max_count, greedy) =
         Repetition{terminal_type(element), typeof(element)}(element, min_count, max_count, greedy)
-Repetition(element, min_c0, min_c1, max_c0, max_c1, greedy) =
-        Repetition(element, ParameterTerm(min_c0, min_c1), ParameterTerm(max_c0, max_c1), greedy)
 
 struct Alternative{TT, NT} <: Node{TT}
     elements::Vector{NT}

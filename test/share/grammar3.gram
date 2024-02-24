@@ -31,20 +31,15 @@ node1 => concatenation[]=concat
 node0 => structure=name space '=' space definition=node0
 node0 => '(' space node2 space ')'
 node0 => '(' space ')' empty=()
-node0 => '(' space min=minspec ':' space max=maxspec '|' space repetition=node2 space greedyspec ')'
+node0 => '(' space minspec ':' space maxspec '|' space repetition=node2 space greedyspec ')'
 node0 => terminal[]=terminal
-node0 => reference[*]=symbol parameter=(0:1| '{' parameterterm '}' +)
-
-parameterterm => c0[*]=int
-parameterterm => c1[*]=symbol
-parameterterm => c0[*]=int space '+' space c1[*]=symbol
-parameterterm => c1[*]=symbol space '+' space c0[*]=int
+node0 => reference[*]=symbol
 
 # if uncommented, min will default to 0. (This is as unintuitive as defaulting to 1 so it must be explicitly set)
 #minspec => ()
-minspec => parameterterm space
+minspec => min[*]=int space
 maxspec => ()
-maxspec => parameterterm space
+maxspec => max[*]=int space
 greedyspec => ()
 greedyspec => '+' greedy=() space
 
@@ -74,8 +69,8 @@ escapedchar => '\\'*.;-'\n';-'\\';-'\'';.
 escapedstring => (2:| escapedchar +)
 
 name => key[*]=symbol dict=() # dict key (element type: dict)
-name => key[*]=symbol array=() space '[]' # [] dict key (element type: array)
-name => key[*]=symbol string=() space '[*]' # [*] dict key (element type: string)
+name => key[*]=symbol array=() '[]' # [] dict key (element type: array)
+name => key[*]=symbol string=() '[*]' # [*] dict key (element type: string)
 name => '*' dict=() # * array element (element type: dict)
 name => '[]' array=() # [] array element (element type: array)
 name => '[*]' string=() # [*] array element (element type: string)

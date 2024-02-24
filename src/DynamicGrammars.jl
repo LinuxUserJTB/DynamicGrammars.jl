@@ -48,8 +48,7 @@ end
 
 function parse_string(r::RuleSet{TT}, d, out_type) where TT
     cache = ParserCache(Dict{State, Int}(), UnitRange{Int}[], StateResult[])
-    s0 = State(1, r.root, 0)
-    result_root = parse_node_at!(cache, r, r.nodes[r.root], s0, 0, d)
+    result_root = parse_node_at!(cache, r, r.nodes[r.root], firstindex(d), 0, d)
     mxpos = 0
     mxi = 0
     for i in result_range(cache, result_root)
