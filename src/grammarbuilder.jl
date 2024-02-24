@@ -1,11 +1,5 @@
 using DynamicGrammars
 
-function parse_parameters(data::ASTNode)
-    c0 = parse(Int, value(data, "c0", "0"))
-    c1 = haskey(data, "c1")
-    return c0, c1
-end
-
 function construct_node(r::RuleSet, data::ASTNode, ::Type{Reference})
     name = value(data, "reference")
     return Reference{terminal_type(r)}(r.indices[name], name)

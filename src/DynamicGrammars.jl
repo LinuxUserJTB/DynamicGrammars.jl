@@ -35,6 +35,10 @@ include("parser.jl")
 
 include("ast.jl")
 
+include("grammarbuilder.jl")
+
+RuleSet{TT}(ast::ASTNode) where TT = construct_ruleset(TT, ast)
+
 function list_errors(r::RuleSet, cache::ParserCache, start_pos)
     list = Pair{Int, String}[]
     for (state, index) in cache.cache
