@@ -50,4 +50,4 @@ end
 test_pipeline_dir(dir) = test_pipeline([dir * '/' * f for f in readdir(dir)])
 
 test_pipeline_dir(ARGS[begin])
-test_pipeline_dir(ARGS[begin])
+println(repr(test_pipeline_dir(ARGS[begin])))
